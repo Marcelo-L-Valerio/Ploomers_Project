@@ -17,6 +17,10 @@ namespace Ploomers_Project_API.Mappers
                 .ForMember(dest => dest.ClientName, opt =>
                 {
                     opt.MapFrom(src => src.Client.Name);
+                })
+                .ForMember(dest => dest.EmployeeName, opt =>
+                {
+                    opt.MapFrom(src => src.Employee.FirstName + " " + src.Employee.LastName);
                 });
 
             CreateMap<SaleInputModel, Sale>();

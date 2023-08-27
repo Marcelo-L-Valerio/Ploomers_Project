@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Ploomers_Project_API.Business;
 using Ploomers_Project_API.Mappers.DTOs.InputModels;
@@ -6,8 +7,10 @@ using Ploomers_Project_API.Models.Context;
 
 namespace Ploomers_Project_API.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1")]
+    [Route("api/sales/v{version:apiVersion}")]
     [ApiController]
+    [Authorize("Bearer")]
     public class SalesController : ControllerBase
     {
         private readonly SqlServerContext _context;
@@ -26,6 +29,12 @@ namespace Ploomers_Project_API.Controllers
             return Ok(_saleBusiness.FindOneClientSales(client_id));
         }
 
+        [HttpGet("employee/{employee_id}")]
+        public IActionResult GetEmployeeSales(Guid employee_id)
+        {
+            return Ok(_saleBusiness.FindOneEmployeeSales(employee_id));
+        }
+
         [HttpGet("{date}")]
         public IActionResult GetDailySales(DateOnly date)
         {
@@ -35,7 +44,8 @@ namespace Ploomers_Project_API.Controllers
         [HttpPost("client/{client_id}")]
         public IActionResult PostSale(Guid client_id, SaleInputModel payload)
         {
-            var sale = _saleBusiness.Create(client_id, payload);
+            var employeeEmail = User.Identity.Name;
+            var sale = _saleBusiness.Create(payload, client_id, employeeEmail);
             return Ok(sale);
         }
 

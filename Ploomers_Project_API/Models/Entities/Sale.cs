@@ -7,6 +7,8 @@
         public int Value { get; set; }
         public DateTime Date { get; set; }
         public Guid ClientId { get; set; }
+        public Guid EmployeeId { get; set; }
         public virtual Client Client { get; set; }
+        public virtual Employee Employee { get; set; }
     }
 }

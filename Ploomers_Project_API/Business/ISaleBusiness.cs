@@ -5,10 +5,11 @@ namespace Ploomers_Project_API.Business
 {
     public interface ISaleBusiness
     {
-        SaleViewModel Create(Guid clientId, SaleInputModel sale);
+        SaleViewModel Create(SaleInputModel sale, Guid client_id, string employeeEmail);
         void Update(Guid id, SaleInputModel sale);
         void Delete(Guid id);
         List<SaleViewModel> FindTodaySales(DateOnly today);
         List<SaleViewModel> FindOneClientSales(Guid clientId);
+        List<SaleViewModel> FindOneEmployeeSales(Guid employeeId);
     }
 }

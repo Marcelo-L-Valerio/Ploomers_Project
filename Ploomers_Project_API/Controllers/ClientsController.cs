@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Ploomers_Project_API.Business;
 using Ploomers_Project_API.Mappers.DTOs.InputModels;
 using Ploomers_Project_API.Models.Context;
 
 namespace Ploomers_Project_API.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1")]
+    [Route("api/clients/v{version:apiVersion}")]
     [ApiController]
+    [Authorize("Bearer")]
     public class ClientsController : ControllerBase
     {
         private readonly SqlServerContext _context;

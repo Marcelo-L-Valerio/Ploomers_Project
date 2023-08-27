@@ -1,0 +1,26 @@
+version: '3.4'
+
+services:
+  ploomers_project_api:
+    build:
+      context: .
+      dockerfile: Ploomers_Project_API/Dockerfile
+    container_name: ploomers_project_api
+    ports:
+      - "5000:80"
+    depends_on:
+      - sql_server
+
+  sql_server:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: sql_server2022
+    volumes:
+    - app_db:/var/lib/sqlserver/data
+    ports:
+      - "1433:1433" 
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=A&VeryComplex123Password
+
+volumes:
+  app_db:

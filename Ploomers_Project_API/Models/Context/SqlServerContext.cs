@@ -13,6 +13,7 @@ namespace Ploomers_Project_API.Models.Context
         public DbSet<Client> Clients { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<Sale> Sales { get; set; }
+        public DbSet<Employee> Employees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -21,13 +22,14 @@ namespace Ploomers_Project_API.Models.Context
                 c.HasKey(cl => cl.Id);
 
                 c.Property(cl => cl.Name).IsRequired().HasMaxLength(100);
-                c.Property(cl => cl.Type).IsRequired().HasMaxLength(2);
+                c.Property(cl => cl.Type).IsRequired();
                 c.Property(cl => cl.Document).IsRequired().HasMaxLength(14);
                 c.Property(cl => cl.Address).IsRequired().HasMaxLength(150);
 
                 c.HasMany(cl => cl.Contacts);
                 c.HasMany(cl => cl.Sales);
             });
+            builder.Entity<Client>().HasIndex(x => new { x.Document }).IsUnique();
 
             builder.Entity<Contact>(c =>
             {
@@ -47,7 +49,23 @@ namespace Ploomers_Project_API.Models.Context
                 s.Property(sa => sa.Value).IsRequired();
                 s.Property(sa => sa.Date).IsRequired();
                 s.Property(sa => sa.ClientId).IsRequired();
+                s.Property(sa => sa.EmployeeId).IsRequired();
             });
+
+            builder.Entity<Employee>(e =>
+            {
+                e.HasKey(em => em.Id);
+
+                e.Property(em => em.Email).IsRequired().HasMaxLength(100);
+                e.Property(em => em.FirstName).HasMaxLength(50);
+                e.Property(em => em.LastName).HasMaxLength(50);
+                e.Property(em => em.Password).IsRequired();
+                e.Property(em => em.RefreshToken).IsRequired(false);
+
+                e.HasMany(em => em.Sales);
+
+            });
+            builder.Entity<Employee>().HasIndex(x => new { x.Email }).IsUnique();
         }
     }
 }

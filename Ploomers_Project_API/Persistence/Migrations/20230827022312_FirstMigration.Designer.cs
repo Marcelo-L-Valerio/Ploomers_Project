@@ -12,7 +12,7 @@ using Ploomers_Project_API.Models.Context;
 namespace Ploomers_Project_API.Persistence.Migrations
 {
     [DbContext(typeof(SqlServerContext))]
-    [Migration("20230825044520_FirstMigration")]
+    [Migration("20230827022312_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -47,12 +47,13 @@ namespace Ploomers_Project_API.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("nvarchar(2)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Document")
+                        .IsUnique();
 
                     b.ToTable("Clients");
                 });
@@ -84,6 +85,46 @@ namespace Ploomers_Project_API.Persistence.Migrations
                     b.ToTable("Contacts");
                 });
 
+            modelBuilder.Entity("Ploomers_Project_API.Models.Entities.Employee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Employees");
+                });
+
             modelBuilder.Entity("Ploomers_Project_API.Models.Entities.Sale", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,6 +141,9 @@ namespace Ploomers_Project_API.Persistence.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Product")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -111,6 +155,8 @@ namespace Ploomers_Project_API.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
+
+                    b.HasIndex("EmployeeId");
 
                     b.ToTable("Sales");
                 });
@@ -134,13 +180,26 @@ namespace Ploomers_Project_API.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Ploomers_Project_API.Models.Entities.Employee", "Employee")
+                        .WithMany("Sales")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Client");
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Ploomers_Project_API.Models.Entities.Client", b =>
                 {
                     b.Navigation("Contacts");
 
+                    b.Navigation("Sales");
+                });
+
+            modelBuilder.Entity("Ploomers_Project_API.Models.Entities.Employee", b =>
+                {
                     b.Navigation("Sales");
                 });
 #pragma warning restore 612, 618

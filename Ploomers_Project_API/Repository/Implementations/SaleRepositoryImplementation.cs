@@ -15,14 +15,18 @@ namespace Ploomers_Project_API.Repository.Implementations
             dataset = _context.Set<Sale>();
         }
 
-        public Sale Create(Sale sale)
+        public Sale Create(Sale sale, string employeeEmail)
         {
-            var result = _context.Clients
-                .FirstOrDefault(c => c.Id.Equals(sale.ClientId));
+            sale.Date = DateTime.Now;
 
-            if (result == null) return null;
+            var employee = _context.Employees
+                .SingleOrDefault(e => e.Email.Equals(employeeEmail));
+            var client = _context.Clients
+                .SingleOrDefault(e => e.Id.Equals(sale.ClientId));
 
-            sale.Client = result;
+            sale.Employee = employee;
+            sale.Client = client;
+
             dataset.Add(sale);
             _context.SaveChanges();
             return sale;
@@ -30,10 +34,10 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         public void Delete(Guid id)
         {
-            var result = dataset.SingleOrDefault(s => s.Id.Equals(id));
-            if (result != null)
+            var queryset = dataset.SingleOrDefault(s => s.Id.Equals(id));
+            if (queryset != null)
             {
-                dataset.Remove(result);
+                dataset.Remove(queryset);
                 _context.SaveChanges();
             }
             else
@@ -44,15 +48,15 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         public Sale Update(Sale sale)
         {
-            var result = dataset.SingleOrDefault(p => p.Id.Equals(sale.Id));
-            if (result != null)
+            var queryset = dataset.SingleOrDefault(p => p.Id.Equals(sale.Id));
+            if (queryset != null)
             {
-                result.Amount = sale.Amount;
-                result.Value = sale.Value;
-                result.Product = sale.Product;
-                dataset.Update(result);
+                queryset.Amount = sale.Amount;
+                queryset.Value = sale.Value;
+                queryset.Product = sale.Product;
+                dataset.Update(queryset);
                 _context.SaveChanges();
-                return result;
+                return queryset;
             }
             else
             {
@@ -64,8 +68,28 @@ namespace Ploomers_Project_API.Repository.Implementations
         {
             var queryset = dataset.Where(s => s.ClientId.Equals(clientId)).ToList();
 
-            var clientObject = _context.Clients.SingleOrDefault(c => c.Id.Equals(clientId));
-            queryset.ForEach(s => s.Client = clientObject);
+            var clientObject = _context.Clients.FirstOrDefault(c => c.Id.Equals(clientId));
+
+            foreach(var sale in queryset)
+            {
+                sale.Client = clientObject;
+                sale.Employee = _context.Employees.SingleOrDefault(c => c.Id.Equals(sale.EmployeeId));
+            }
+
+            return queryset;
+        }
+
+        public List<Sale> FindOneEmployeeSales(Guid employeeId)
+        {
+            var queryset = dataset.Where(s => s.EmployeeId.Equals(employeeId)).ToList();
+
+            var employeeObject = _context.Employees.FirstOrDefault(c => c.Id.Equals(employeeId));
+
+            foreach (var sale in queryset)
+            {
+                sale.Employee = employeeObject;
+                sale.Client = _context.Clients.SingleOrDefault(c => c.Id.Equals(sale.ClientId));
+            }
 
             return queryset;
         }
@@ -81,6 +105,8 @@ namespace Ploomers_Project_API.Repository.Implementations
             {
                 sale.Client = _context.Clients.SingleOrDefault(c => 
                     c.Id.Equals(sale.ClientId));
+                sale.Employee = _context.Employees.SingleOrDefault(c => 
+                    c.Id.Equals(sale.EmployeeId));
             }
             return queryset;
         }

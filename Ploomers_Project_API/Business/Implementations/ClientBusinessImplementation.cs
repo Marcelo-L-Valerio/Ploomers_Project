@@ -3,6 +3,7 @@ using Ploomers_Project_API.DTOs.ViewModels;
 using Ploomers_Project_API.Mappers.DTOs.InputModels;
 using Ploomers_Project_API.Models.Entities;
 using Ploomers_Project_API.Repository;
+using System.Text.RegularExpressions;
 
 namespace Ploomers_Project_API.Business.Implementations
 {
@@ -17,11 +18,15 @@ namespace Ploomers_Project_API.Business.Implementations
         }
         public ClientViewModel Create(ClientInputModel client)
         {
-            var mappedClient = _mapper.Map<Client>(client);
-            var clientEntity = _clientRepository.Create(mappedClient);
+            if (IsValid(client))
+            {
+                var mappedClient = _mapper.Map<Client>(client);
+                var clientEntity = _clientRepository.Create(mappedClient);
 
-            var viewModel = _mapper.Map<ClientViewModel>(clientEntity);
-            return viewModel;
+                var viewModel = _mapper.Map<ClientViewModel>(clientEntity);
+                return viewModel;
+            }
+            return null;
         }
 
         public void Delete(Guid id)
@@ -57,9 +62,12 @@ namespace Ploomers_Project_API.Business.Implementations
 
         public void Update(Guid id, ClientInputModel clientData)
         {
-            var mappedClient = _mapper.Map<Client>(clientData);
-            mappedClient.Id = id;
-            var clientEntity = _clientRepository.Update(mappedClient);
+            if (IsValid(clientData))
+            {
+                var mappedClient = _mapper.Map<Client>(clientData);
+                mappedClient.Id = id;
+                var clientEntity = _clientRepository.Update(mappedClient);
+            }
         }
 
         public void AddContact(Guid id, ContactInputModel contact)
@@ -71,6 +79,26 @@ namespace Ploomers_Project_API.Business.Implementations
         public void DeleteContact(Guid idcli, Guid idcont)
         {
             _clientRepository.DeleteContact(idcli, idcont);
+        }
+
+        private bool IsValid(ClientInputModel client)
+        {
+            // Type Validation
+            if (!(client.Type != "PJ" || client.Type != "PF"))
+            {
+                throw new Exception(
+                    "Type must be either PF (Pessoa física) or PJ (Pessoa Jurídica)");
+            }
+            // Document Validation
+            int docLength = (client.Type == "PJ") ? 14 : 11;
+            if (!Regex.IsMatch(client.Document, @"^\d{" + docLength + "}$"))
+            {
+                throw new Exception(
+                    $"Client type {client.Type} must have a {docLength} " +
+                    $"document size and contain only numeric characters.");
+            }
+
+            return true;
         }
     }
 }

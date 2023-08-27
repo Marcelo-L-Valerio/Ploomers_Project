@@ -25,32 +25,49 @@ namespace Ploomers_Project_API.Repository.Implementations
         public List<Client> FindAll()
         {
             DateTime lastWeek = DateTime.Now.Date.AddDays(-7);
-            var data = dataset
+            var queryset = dataset
                         .Include(co => co.Contacts)
                         .Include(co => co.Sales
                             .Where(s => s.Date >= lastWeek))
                         .ToList();
-            return data;
+            foreach( var client in queryset )
+            {
+                foreach (var sale in client.Sales)
+                {
+                    sale.Employee = _context.Employees.SingleOrDefault(c =>
+                        c.Id.Equals(sale.EmployeeId));
+                }
+            }
+
+            return queryset;
         }
 
         public Client FindById(Guid id)
         {
             DateTime lastWeek = DateTime.Now.Date.AddDays(-7);
-            return dataset
+            var queryset = dataset
                 .Include(co => co.Contacts)
                 .Include(co => co.Sales
                     .Where(s => s.Date >= lastWeek))
                 .SingleOrDefault(c => c.Id.Equals(id));
+
+            foreach (var sale in queryset.Sales)
+            {
+                sale.Employee = _context.Employees.SingleOrDefault(c =>
+                    c.Id.Equals(sale.EmployeeId));
+            }
+
+            return queryset;
         }
 
         public Client Update(Client client)
         {
-            var result = dataset.SingleOrDefault(p => p.Id.Equals(client.Id));
-            if (result != null)
+            var queryset = dataset.SingleOrDefault(p => p.Id.Equals(client.Id));
+            if (queryset != null)
             {
-                dataset.Entry(result).CurrentValues.SetValues(client);
+                dataset.Entry(queryset).CurrentValues.SetValues(client);
                 _context.SaveChanges();
-                return result;
+                return queryset;
             }
             else
             {
@@ -60,21 +77,21 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         public void Delete(Guid id)
         {
-            var result = dataset.SingleOrDefault(c => c.Id.Equals(id));
-            if (result != null)
+            var queryset = dataset.SingleOrDefault(c => c.Id.Equals(id));
+            if (queryset != null)
             {
-                dataset.Remove(result);
+                dataset.Remove(queryset);
                 _context.SaveChanges();
             }
         }
 
         public void AddContact(Guid id, Contact contact)
         {
-            var result = dataset.SingleOrDefault(p => p.Id.Equals(id));
-            if (result != null)
+            var queryset = dataset.SingleOrDefault(p => p.Id.Equals(id));
+            if (queryset != null)
             {
                 contact.ClientId = id;
-                contact.Client = result;
+                contact.Client = queryset;
                 _context.Contacts.Add(contact);
                 _context.SaveChanges();
             }

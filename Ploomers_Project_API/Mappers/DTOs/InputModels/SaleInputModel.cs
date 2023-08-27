@@ -1,4 +1,6 @@
-﻿namespace Ploomers_Project_API.Mappers.DTOs.InputModels
+﻿using Ploomers_Project_API.Models.Entities;
+
+namespace Ploomers_Project_API.Mappers.DTOs.InputModels
 {
     public class SaleInputModel
     {

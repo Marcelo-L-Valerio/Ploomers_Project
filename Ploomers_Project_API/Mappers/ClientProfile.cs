@@ -18,8 +18,30 @@ namespace Ploomers_Project_API.Mappers
 
             CreateMap<Contact, ContactViewModel>();
 
-            CreateMap<ClientInputModel, Client>();
+            CreateMap<ClientInputModel, Client>()
+                 .ForMember(dest => dest.Type, opt =>
+                 {
+                     opt.MapFrom(src => TipoConverter.Convert(src.Type));
+                 });
             CreateMap<ContactInputModel, Contact>();
+        }
+    }
+
+    public static class TipoConverter
+    {
+        public static int Convert(string tipo)
+        {
+            if (tipo == "PF")
+            {
+                return 1;
+            }
+            else if (tipo == "PJ")
+            {
+                return 0;
+            }
+
+            // Caso não seja "PF" nem "PJ", você pode definir um valor padrão ou lançar uma exceção, dependendo da sua necessidade.
+            throw new ArgumentException("Tipo inválido.");
         }
     }
 }

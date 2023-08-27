@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Ploomers_Project_API.Mappers.DTOs.InputModels;
 using Ploomers_Project_API.Mappers.DTOs.ViewModels;
+using Ploomers_Project_API.Models.Context;
 using Ploomers_Project_API.Models.Entities;
 using Ploomers_Project_API.Repository;
 
@@ -10,19 +11,22 @@ namespace Ploomers_Project_API.Business.Implementations
     {
         private readonly ISaleRepository _saleRepository;
         private readonly IMapper _mapper;
-        public SaleBusinessImplementation(ISaleRepository repository, IMapper mapper)
+        private readonly SqlServerContext _context;
+        public SaleBusinessImplementation(ISaleRepository repository, IMapper mapper, SqlServerContext context)
         {
             _saleRepository = repository;
             _mapper = mapper;
+            _context = context;
         }
 
-        public SaleViewModel Create(Guid clientId, SaleInputModel sale)
+        public SaleViewModel Create(SaleInputModel sale, Guid client_id, string employeeEmail)
         {
             var mappedSale = _mapper.Map<Sale>(sale);
-            mappedSale.Date = DateTime.Now;
-            mappedSale.ClientId = clientId;
-            var saleEntity = _saleRepository.Create(mappedSale);
+            mappedSale.ClientId = client_id;
 
+            var saleEntity = _saleRepository.Create(mappedSale,employeeEmail);
+
+            if (mappedSale.Client == null || mappedSale.Employee == null) return null;
             var viewModel = _mapper.Map<SaleViewModel>(saleEntity);
             return viewModel;
         }
@@ -36,6 +40,12 @@ namespace Ploomers_Project_API.Business.Implementations
         {
             return _mapper.Map<List<SaleViewModel>>
                 (_saleRepository.FindOneClientSales(clientId));
+        }
+
+        public List<SaleViewModel> FindOneEmployeeSales(Guid employeeId)
+        {
+            return _mapper.Map<List<SaleViewModel>>
+                (_saleRepository.FindOneEmployeeSales(employeeId));
         }
 
         public List<SaleViewModel> FindTodaySales(DateOnly today)
