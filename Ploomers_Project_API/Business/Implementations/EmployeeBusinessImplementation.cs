@@ -3,57 +3,31 @@ using Ploomers_Project_API.Mappers.DTOs.InputModels;
 using Ploomers_Project_API.Mappers.DTOs.ViewModels;
 using Ploomers_Project_API.Models.Entities;
 using Ploomers_Project_API.Repository;
-using Ploomers_Project_API.TokenService;
-using Ploomers_Project_API.TokenService.Configuration;
+using Ploomers_Project_API.Services.TokenService;
+using Ploomers_Project_API.Services.TokenService.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 
 namespace Ploomers_Project_API.Business.Implementations
 {
     public class EmployeeBusinessImplementation : IEmployeeBusiness
     {
-        private TokenConfiguration _configuration;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IMapper _mapper;
-        private ITokenService _tokenService;
-        public EmployeeBusinessImplementation(
-            IEmployeeRepository repository, IMapper mapper,
-            ITokenService tokenService, TokenConfiguration configuration)
+        public EmployeeBusinessImplementation(IEmployeeRepository repository, IMapper mapper)
         {
             _employeeRepository = repository;
             _mapper = mapper;
-            _tokenService = tokenService;
-            _configuration = configuration;
         }
+
         public EmployeeViewModel Create(EmployeeInputModel employee)
         {
             var mappedEmployee = _mapper.Map<Employee>(employee);
+            if (!IsValid(employee)) return null;
 
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                new Claim(JwtRegisteredClaimNames.UniqueName, mappedEmployee.Email)
-            };
-
-            var accessToken = _tokenService.GenerateAcessToken(claims);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            mappedEmployee.RefreshToken = refreshToken;
-            mappedEmployee.RefreshTokenExpiryTime = DateTime.Now.AddDays(_configuration.DaysToExpiry);
-
-            if (IsValid(employee))
-            {
-                var employeeEntity = _employeeRepository.Create(mappedEmployee);
-                var viewModel = _mapper.Map<EmployeeViewModel>(employeeEntity);
-                return viewModel;
-            }
-            return null;
-        }
-
-        public void Delete(Guid id)
-        {
-            _employeeRepository.Delete(id);
+            var employeeEntity = _employeeRepository.Create(mappedEmployee);
+            var viewModel = _mapper.Map<EmployeeViewModel>(employeeEntity);
+            return viewModel;
         }
 
         public List<EmployeeViewModel> FindAll()
@@ -86,11 +60,18 @@ namespace Ploomers_Project_API.Business.Implementations
         {
             var mappedEmployee = _mapper.Map<Employee>(employeeData);
             mappedEmployee.Id = id;
-            var employeeEntity = _employeeRepository.Update(mappedEmployee);
+            _employeeRepository.Update(mappedEmployee);
         }
 
+        public void Delete(Guid id)
+        {
+            _employeeRepository.Delete(id);
+        }
+
+        // Employee Input data extra validation
         private bool IsValid(EmployeeInputModel employee)
         {
+            // Password validation
             if (employee.Password.Length < 8)
             {
                 throw new Exception("Password minimum lenght is 8 digits!");

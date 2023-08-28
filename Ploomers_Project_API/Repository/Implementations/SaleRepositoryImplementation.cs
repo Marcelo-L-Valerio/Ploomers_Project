@@ -17,12 +17,13 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         public Sale Create(Sale sale, string employeeEmail)
         {
+            // Add the missing data and saves in the database
             sale.Date = DateTime.Now;
 
             var employee = _context.Employees
-                .SingleOrDefault(e => e.Email.Equals(employeeEmail));
+                .SingleOrDefault(e => e.Email == employeeEmail);
             var client = _context.Clients
-                .SingleOrDefault(e => e.Id.Equals(sale.ClientId));
+                .SingleOrDefault(e => e.Id == sale.ClientId);
 
             sale.Employee = employee;
             sale.Client = client;
@@ -32,23 +33,9 @@ namespace Ploomers_Project_API.Repository.Implementations
             return sale;
         }
 
-        public void Delete(Guid id)
-        {
-            var queryset = dataset.SingleOrDefault(s => s.Id.Equals(id));
-            if (queryset != null)
-            {
-                dataset.Remove(queryset);
-                _context.SaveChanges();
-            }
-            else
-            {
-                throw new Exception("Sale not found!");
-            }
-        }
-
         public Sale Update(Sale sale)
         {
-            var queryset = dataset.SingleOrDefault(p => p.Id.Equals(sale.Id));
+            var queryset = dataset.SingleOrDefault(p => p.Id == sale.Id);
             if (queryset != null)
             {
                 queryset.Amount = sale.Amount;
@@ -64,32 +51,32 @@ namespace Ploomers_Project_API.Repository.Implementations
             }
         }
 
+        public void Delete(Guid id)
+        {
+            var queryset = dataset.SingleOrDefault(s => s.Id == id);
+            if (queryset != null)
+            {
+                dataset.Remove(queryset);
+                _context.SaveChanges();
+            }
+            else
+            {
+                throw new Exception("Sale not found!");
+            }
+        }
+
         public List<Sale> FindOneClientSales(Guid clientId)
         {
-            var queryset = dataset.Where(s => s.ClientId.Equals(clientId)).ToList();
-
-            var clientObject = _context.Clients.FirstOrDefault(c => c.Id.Equals(clientId));
-
-            foreach(var sale in queryset)
-            {
-                sale.Client = clientObject;
-                sale.Employee = _context.Employees.SingleOrDefault(c => c.Id.Equals(sale.EmployeeId));
-            }
+            var queryset = dataset.Where(s => s.ClientId == clientId)
+                .Include(s => s.Employee).Include(s => s.Client).ToList();
 
             return queryset;
         }
 
         public List<Sale> FindOneEmployeeSales(Guid employeeId)
         {
-            var queryset = dataset.Where(s => s.EmployeeId.Equals(employeeId)).ToList();
-
-            var employeeObject = _context.Employees.FirstOrDefault(c => c.Id.Equals(employeeId));
-
-            foreach (var sale in queryset)
-            {
-                sale.Employee = employeeObject;
-                sale.Client = _context.Clients.SingleOrDefault(c => c.Id.Equals(sale.ClientId));
-            }
+            var queryset = dataset.Where(s => s.EmployeeId == employeeId)
+                .Include(s => s.Employee).Include(s => s.Client).ToList();
 
             return queryset;
         }
@@ -99,15 +86,9 @@ namespace Ploomers_Project_API.Repository.Implementations
             DateTime start = today.ToDateTime(TimeOnly.MinValue);
             DateTime end = today.ToDateTime(TimeOnly.MaxValue);
 
-            var queryset = dataset.Where(s => s.Date <= end && s.Date >= start).ToList();
+            var queryset = dataset.Where(s => s.Date <= end && s.Date >= start)
+                .Include(s => s.Employee).Include(s => s.Client).ToList();
 
-            foreach (var sale in queryset)
-            {
-                sale.Client = _context.Clients.SingleOrDefault(c => 
-                    c.Id.Equals(sale.ClientId));
-                sale.Employee = _context.Employees.SingleOrDefault(c => 
-                    c.Id.Equals(sale.EmployeeId));
-            }
             return queryset;
         }
     }

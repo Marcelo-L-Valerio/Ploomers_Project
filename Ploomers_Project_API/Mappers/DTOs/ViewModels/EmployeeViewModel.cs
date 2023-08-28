@@ -2,6 +2,7 @@
 
 namespace Ploomers_Project_API.Mappers.DTOs.ViewModels
 {
+    // How the employee data is expected to go back to users
     public class EmployeeViewModel
     {
         public Guid Id { get; set; }

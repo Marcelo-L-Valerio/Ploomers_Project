@@ -5,6 +5,7 @@ namespace Ploomers_Project_API.Models.Context
 {
     public class SqlServerContext : DbContext
     {
+        // Database mapping and migrations creator
         public SqlServerContext(DbContextOptions<SqlServerContext> options) : base(options)
         {
 

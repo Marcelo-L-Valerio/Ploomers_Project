@@ -1,5 +1,6 @@
 ﻿namespace Ploomers_Project_API.Mappers.DTOs.ViewModels
 {
+    // How the sale data is expected to go back to users
     public class SaleViewModel
     {
         public Guid Id { get; set; }

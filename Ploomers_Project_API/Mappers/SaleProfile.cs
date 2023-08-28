@@ -9,6 +9,7 @@ namespace Ploomers_Project_API.Mappers
     {
         public SaleProfile()
         {
+            //Calculates the sales total, and adds client and employee name to the view
             CreateMap<Sale, SaleViewModel>()
                 .ForMember(dest => dest.Total, opt =>
                 {

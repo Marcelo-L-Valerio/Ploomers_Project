@@ -2,6 +2,7 @@
 
 namespace Ploomers_Project_API.Mappers.DTOs.InputModels
 {
+    // How the client data is expected to arrive from requests
     public class ClientInputModel
     {
         public string Name { get; set; }

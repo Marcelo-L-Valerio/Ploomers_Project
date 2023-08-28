@@ -18,20 +18,13 @@ namespace Ploomers_Project_API.Business.Implementations
         }
         public ClientViewModel Create(ClientInputModel client)
         {
-            if (IsValid(client))
-            {
-                var mappedClient = _mapper.Map<Client>(client);
-                var clientEntity = _clientRepository.Create(mappedClient);
+            if (!IsValid(client)) return null;
 
-                var viewModel = _mapper.Map<ClientViewModel>(clientEntity);
-                return viewModel;
-            }
-            return null;
-        }
+            var mappedClient = _mapper.Map<Client>(client);
+            var clientEntity = _clientRepository.Create(mappedClient);
 
-        public void Delete(Guid id)
-        {
-            _clientRepository.Delete(id);
+            var viewModel = _mapper.Map<ClientViewModel>(clientEntity);
+            return viewModel;
         }
 
         public List<ClientViewModel> FindAll()
@@ -41,7 +34,7 @@ namespace Ploomers_Project_API.Business.Implementations
             var viewModel = _mapper.Map<List<ClientViewModel>>(clients);
 
             viewModel.
-                ForEach(client => 
+                ForEach(client =>
                 {
                     client.LastWeekTotal = client.LastWeekSales
                     .Sum(sale => sale.Total);
@@ -70,6 +63,12 @@ namespace Ploomers_Project_API.Business.Implementations
             }
         }
 
+        public void Delete(Guid id)
+        {
+            _clientRepository.Delete(id);
+        }
+
+        // Contacts subAPI (connected to clients)
         public void AddContact(Guid id, ContactInputModel contact)
         {
             var mappedContact = _mapper.Map<Contact>(contact);
@@ -81,6 +80,7 @@ namespace Ploomers_Project_API.Business.Implementations
             _clientRepository.DeleteContact(idcli, idcont);
         }
 
+        // Client Input data extra validation
         private bool IsValid(ClientInputModel client)
         {
             // Type Validation

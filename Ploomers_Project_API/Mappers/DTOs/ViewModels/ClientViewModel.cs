@@ -2,6 +2,7 @@
 
 namespace Ploomers_Project_API.DTOs.ViewModels
 {
+    // How the client data is expected to go back to users
     public class ClientViewModel
     {
         public Guid Id { get; set; }

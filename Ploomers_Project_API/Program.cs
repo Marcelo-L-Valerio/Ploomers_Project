@@ -10,19 +10,24 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
-using Ploomers_Project_API.TokenService.Configuration;
-using Ploomers_Project_API.TokenService;
+using Microsoft.OpenApi.Models;
+using Ploomers_Project_API.Services.TokenService.Configuration;
+using Ploomers_Project_API.Services.TokenService;
+using Ploomers_Project_API.Services.DbService;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Token Config
 var tokenConfigurations = new TokenConfiguration();
 
 new ConfigureFromConfigurationOptions<TokenConfiguration>(
     builder.Configuration.GetSection("JwtSettings")
 ).Configure(tokenConfigurations);
 
+// Token Implementation
 builder.Services.AddSingleton(tokenConfigurations);
 
+// Authentication Config
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,6 +46,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Authorization Config
 builder.Services.AddAuthorization(auth =>
 {
     auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
@@ -48,19 +54,52 @@ builder.Services.AddAuthorization(auth =>
         .RequireAuthenticatedUser().Build());
 });
 
-// Add services to the container.
-var connectionStr = builder.Configuration.GetConnectionString("SqlServerDocker");
+// Database Config
+var connectionStr = builder.Configuration.GetConnectionString("SqlServerLocal");
 builder.Services.AddDbContext<SqlServerContext>(o => o.UseSqlServer(connectionStr));
 
+// Mappers Config
 builder.Services.AddAutoMapper(typeof(ClientProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(EmployeeProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(LoginProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(SaleProfile).Assembly);
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddApiVersioning();
 
+// Swagger Config
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PloomeRs-API", Version = "v1" });
 
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme." + 
+        "Add to the field below the following: Bearer {Token generated at signin endpoint}"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// Dependency Injections
 builder.Services.AddScoped<IClientBusiness, ClientBusinessImplementation>();
 builder.Services.AddScoped<ISaleBusiness, SaleBusinessImplementation>();
 builder.Services.AddScoped<ILoginBusiness, LoginBusinessImplementation>();
@@ -80,6 +119,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+// Database migration
+try
+{
+    DbService.MigrationInitialisation(app);
+}
+catch (Exception)
+{
+    Console.WriteLine("No SQL Server DB available");
 }
 
 app.UseHttpsRedirection();

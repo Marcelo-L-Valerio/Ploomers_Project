@@ -3,8 +3,8 @@ using Ploomers_Project_API.Mappers.DTOs.InputModels;
 using Ploomers_Project_API.Mappers.DTOs.ViewModels;
 using Ploomers_Project_API.Models.Entities;
 using Ploomers_Project_API.Repository;
-using Ploomers_Project_API.TokenService;
-using Ploomers_Project_API.TokenService.Configuration;
+using Ploomers_Project_API.Services.TokenService;
+using Ploomers_Project_API.Services.TokenService.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -29,24 +29,27 @@ namespace Ploomers_Project_API.Business.Implementations
             _mapper = mapper;
         }
 
+        // Login data validation
         public TokenViewModel ValidateCredentials(LoginInputModel credentials)
         {
-            var employee = _mapper.Map<Employee>(credentials);
-            var user = _repository.ValidateCredentials(employee);
-            if (user == null) return null;
+            var info = _mapper.Map<Employee>(credentials);
+            var employee = _repository.ValidateCredentials(info);
+
+            if (employee == null) return null;
+
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Email)
+                new Claim(JwtRegisteredClaimNames.UniqueName, employee.Email)
             };
 
             var accessToken = _tokenService.GenerateAcessToken(claims);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(_configuration.DaysToExpiry);
+            employee.RefreshToken = refreshToken;
+            employee.RefreshTokenExpiryTime = DateTime.Now.AddDays(_configuration.DaysToExpiry);
 
-            _repository.RefreshUserInfo(user);
+            _repository.RefreshUserInfo(employee);
 
             DateTime createDate = DateTime.Now;
             DateTime expirationDate = createDate.AddMinutes(_configuration.Minutes);
@@ -60,6 +63,7 @@ namespace Ploomers_Project_API.Business.Implementations
             );
         }
 
+        // Refresh token data validation
         public TokenViewModel ValidateCredentials(TokenInputModel token)
         {
             var accessToken = token.AccessToken;
@@ -93,6 +97,7 @@ namespace Ploomers_Project_API.Business.Implementations
             );
         }
 
+        // Revoke token (log off)
         public bool RevokeToken(string email)
         {
             return _repository.RevokeToken(email);

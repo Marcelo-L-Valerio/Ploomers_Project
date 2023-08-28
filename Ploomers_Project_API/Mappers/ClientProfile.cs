@@ -10,38 +10,59 @@ namespace Ploomers_Project_API.Mappers
     {
         public ClientProfile()
         {
+            // Groups the sales in a new field, and converts Type logics (0 or 1)
+            // to user-friendly data
             CreateMap<Client, ClientViewModel>()
                 .ForMember(dest => dest.LastWeekSales, opt =>
                 {
                     opt.MapFrom(src => src.Sales);
+                })
+                .ForMember(dest => dest.Type, opt =>
+                {
+                    opt.MapFrom(src => TypeConverter.ConvertToApi(((int)src.Type)));
                 });
 
             CreateMap<Contact, ContactViewModel>();
 
+            // Converts the user-friendly input of type to logic (0 or 1)
             CreateMap<ClientInputModel, Client>()
                  .ForMember(dest => dest.Type, opt =>
                  {
-                     opt.MapFrom(src => TipoConverter.Convert(src.Type));
+                     opt.MapFrom(src => TypeConverter.ConvertToDb(src.Type));
                  });
+
             CreateMap<ContactInputModel, Contact>();
         }
     }
 
-    public static class TipoConverter
+    //Helper class to convert the type data
+    public static class TypeConverter
     {
-        public static int Convert(string tipo)
+        public static int ConvertToDb(string type)
         {
-            if (tipo == "PF")
+            if (type == "PF")
             {
                 return 1;
             }
-            else if (tipo == "PJ")
+            else if (type == "PJ")
             {
                 return 0;
             }
 
-            // Caso não seja "PF" nem "PJ", você pode definir um valor padrão ou lançar uma exceção, dependendo da sua necessidade.
-            throw new ArgumentException("Tipo inválido.");
+            throw new ArgumentException("Invalid Type. Must be either PF or PJ");
+        }
+        public static string ConvertToApi(int type)
+        {
+            if (type == 1)
+            {
+                return "Pessoa Física";
+            }
+            else if (type == 0)
+            {
+                return "Pessoa Jurídica";
+            }
+
+            return null;
         }
     }
 }

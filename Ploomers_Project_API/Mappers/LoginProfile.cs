@@ -9,6 +9,7 @@ namespace Ploomers_Project_API.Mappers
     {
         public LoginProfile()
         {
+            // One way only, the login shouldn't retrieve the user data
             CreateMap<LoginInputModel, Employee>();
         }
     }

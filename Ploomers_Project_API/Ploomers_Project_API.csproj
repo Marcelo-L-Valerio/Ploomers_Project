@@ -7,6 +7,7 @@
     <UserSecretsId>793c7ffc-ab65-4d04-9527-c2f036a1f482</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <AssemblyName>Ploomers_Project_API</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

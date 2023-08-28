@@ -2,13 +2,13 @@
 {
     public class Sale : BaseEntity
     {
-        public string Product { get; set; }
-        public int Amount { get; set; }
-        public int Value { get; set; }
-        public DateTime Date { get; set; }
-        public Guid ClientId { get; set; }
-        public Guid EmployeeId { get; set; }
-        public virtual Client Client { get; set; }
-        public virtual Employee Employee { get; set; }
+        public required string Product { get; set; }
+        public required int Amount { get; set; }
+        public required int Value { get; set; }
+        public required DateTime Date { get; set; }
+        public required Guid ClientId { get; set; }
+        public required Guid EmployeeId { get; set; }
+        public required virtual Client Client { get; set; }
+        public required virtual Employee Employee { get; set; }
     }
 }

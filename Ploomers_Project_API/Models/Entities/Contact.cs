@@ -2,9 +2,10 @@
 {
     public class Contact : BaseEntity
     {
-        public string Type { get; set; }
-        public string Info { get; set; }
-        public Guid ClientId { get; set; }
-        public virtual Client Client { get; set; }
+        // Contact type - email, cellphone, etc
+        public required string Type { get; set; }
+        public required string Info { get; set; }
+        public required Guid ClientId { get; set; }
+        public required virtual Client Client { get; set; }
     }
 }

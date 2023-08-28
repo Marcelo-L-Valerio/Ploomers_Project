@@ -16,6 +16,7 @@ namespace Ploomers_Project_API.Repository.Implementations
         {
             using var alg = SHA256.Create();
             var pass = ComputeHash(employee.Password, alg);
+
             var queryset = _context.Employees.FirstOrDefault(e =>
                             (e.Email == employee.Email) && (e.Password == pass));
             return queryset;
@@ -28,17 +29,17 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         public bool RevokeToken(string email)
         {
-            var user = _context.Employees.SingleOrDefault(e => e.Email == email);
-            if (user is null) return false;
+            var employee = _context.Employees.SingleOrDefault(e => e.Email == email);
+            if (employee is null) return false;
 
-            user.RefreshToken = null;
+            employee.RefreshToken = null;
             _context.SaveChanges();
             return true;
         }
 
         public Employee RefreshUserInfo(Employee employee)
         {
-            var queryset = _context.Employees.SingleOrDefault(p => p.Id.Equals(employee.Id));
+            var queryset = _context.Employees.SingleOrDefault(p => p.Id == employee.Id);
             if (queryset != null)
             {
                 try
@@ -56,6 +57,7 @@ namespace Ploomers_Project_API.Repository.Implementations
 
         private string ComputeHash(string input, SHA256 alg)
         {
+            // Helper function to encrypt the password
             Byte[] inputBytes = Encoding.UTF8.GetBytes(input);
             Byte[] hashedBytes = alg.ComputeHash(inputBytes);
 
